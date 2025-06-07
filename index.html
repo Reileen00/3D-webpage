@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Three Intertwined Metal Rings</title>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    canvas { display: block; }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lil-gui@0.18.0/dist/lil-gui.min.js"></script>
+<div id="overlay" style="
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%);
+  color: white;
+  font-size: 90px;
+  font-family: 'Rubik', sans-serif;
+  z-index: 100;
+  text-align: center;
+">
+ Tinkering with 3D Objects
+</div>
+
+
+
+<script>
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x111111);
+
+  const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 100);
+  camera.position.set(4, 4, 8);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.body.appendChild(renderer.domElement);
+
+  // Lighting
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+  scene.add(ambientLight);
+
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+  directionalLight.position.set(5, 10, 7.5);
+  scene.add(directionalLight);
+
+  // Metal texture via environment map
+  const cubeTextureLoader = new THREE.CubeTextureLoader();
+  const envMap = cubeTextureLoader.load([
+    'https://threejs.org/examples/textures/cube/Bridge2/posx.jpg',
+    'https://threejs.org/examples/textures/cube/Bridge2/negx.jpg',
+    'https://threejs.org/examples/textures/cube/Bridge2/posy.jpg',
+    'https://threejs.org/examples/textures/cube/Bridge2/negy.jpg',
+    'https://threejs.org/examples/textures/cube/Bridge2/posz.jpg',
+    'https://threejs.org/examples/textures/cube/Bridge2/negz.jpg',
+  ]);
+  scene.environment = envMap;
+
+  const metalMaterial = new THREE.MeshStandardMaterial({
+    metalness: 1,
+    roughness: 0.01,
+    envMap: envMap,
+    color: 0xaaaaaa,
+  });
+
+  const geometry = new THREE.TorusGeometry(5, 0.5, 39, 1000);
+
+  const ring1 = new THREE.Mesh(geometry, metalMaterial);
+  ring1.rotation.set(0, 0, Math.PI / 2); // horizontal ring
+  ring1.position.set(10, 0, 0);
+  scene.add(ring1);
+
+  const ring2 = new THREE.Mesh(geometry, metalMaterial);
+  ring2.rotation.set(Math.PI / 2, 0, 0); // perpendicular to ring1
+  ring2.position.set(0, 10, 0);
+  scene.add(ring2);
+
+  const ring3 = new THREE.Mesh(geometry, metalMaterial);
+  ring3.rotation.set(0, Math.PI / 2, Math.PI / 2);
+  ring3.position.set(0, 0, 0);
+  ring3.scale.set(0.9, 0.9, 0.9); // slightly smaller
+  ring3.castShadow = true;
+  ring3.receiveShadow = true;
+  ring3.material.envMapIntensity = 1.5; // increase reflection intensity
+  ring3.material.roughness = 0.05; // make it shinier
+  ring3.material.metalness = 1; // ensure it's metallic
+  ring3.material.color.set(0x888888); // slightly darker color
+  ring3.material.needsUpdate = true; // ensure material updates
+  scene.add(ring3);
+
+  function animate() {
+    requestAnimationFrame(animate);
+    ring1.rotation.y += 0.005;
+    ring2.rotation.x += 0.005;
+    ring3.rotation.z += 0.005;
+    ring3.rotation.y += 0.005;
+    ring3.rotation.x += 0.005;
+    renderer.render(scene, camera);
+  }
+  
+
+  animate();
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+  
+</script>
+</body>
+</html>
